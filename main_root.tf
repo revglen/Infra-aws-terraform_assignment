@@ -37,10 +37,10 @@ module "networking" {
 module "alb" {
   source = "./modules/alb"
 
-  name            = "${var.project_name}-${var.environment}-alb"
-  vpc_id          = module.networking.vpc_id
-  subnet_ids      = module.networking.public_subnets # need to change this
-  internal        = false
+  name       = "${var.project_name}-${var.environment}-alb"
+  vpc_id     = module.networking.vpc_id
+  subnet_ids = module.networking.public_subnets # need to change this
+  internal   = false
   # certificate_arn = var.acm_certificate_arn
   # enable_https    = false
 
@@ -51,7 +51,7 @@ module "alb" {
 resource "aws_acm_certificate" "self_signed" {
   private_key      = file("${path.module}/certs/self_signed_key.pem")
   certificate_body = file("${path.module}/certs/self_signed_cert.pem")
-  
+
   lifecycle {
     ignore_changes = [domain_validation_options]
   }
@@ -72,15 +72,15 @@ module "rds" {
 module "app_autoscaling" {
   source = "./modules/app_autoscaling"
 
-  name               = "ecommerce"
-  vpc_id             = module.networking.vpc_id
+  name   = "ecommerce"
+  vpc_id = module.networking.vpc_id
   #subnet_ids         = module.networking.public_subnets # used for testing
   subnet_ids         = module.networking.private_subnets
   security_group_ids = [module.networking.app_security_group_id]
   instance_type      = var.app_instance_type
   min_size           = var.app_min_size
   max_size           = var.app_max_size
-  
+
   db_endpoint = module.rds.endpoint
   db_username = var.db_username
   db_password = var.db_password
@@ -90,9 +90,10 @@ module "app_autoscaling" {
 module "nginx_autoscaling" {
   source = "./modules/nginx_autoscaling"
 
-  name               = "nginx"
-  vpc_id             = module.networking.vpc_id
-  subnet_ids         = module.networking.public_subnets
+  name   = "nginx"
+  vpc_id = module.networking.vpc_id
+  #subnet_ids         = module.networking.public_subnets
+  subnet_ids         = module.networking.private_subnets
   security_group_ids = [module.networking.nginx_security_group_id]
   instance_type      = var.nginx_instance_type
   min_size           = var.nginx_min_size

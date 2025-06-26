@@ -21,24 +21,24 @@ output "rds_endpoint" {
 }
 
 # Application Outputs
-# output "app_asg_name" {
-#   description = "Name of application Auto Scaling Group"
-#   value       = module.app_autoscaling.asg_name
-# }
+output "app_asg_name" {
+  description = "Name of application Auto Scaling Group"
+  value       = module.app_autoscaling.asg_name
+}
 
-# # NGINX Outputs
-# output "nginx_alb_dns_name" {
-#   description = "DNS name of NGINX ALB"
-#   value       = module.alb.dns_name
-# }
+# NGINX Outputs
+output "nginx_alb_dns_name" {
+  description = "DNS name of NGINX ALB"
+  value       = module.alb.alb_dns_name
+}
 
-# output "nginx_asg_name" {
-#   description = "Name of NGINX Auto Scaling Group"
-#   value       = module.nginx_autoscaling.asg_name
-# }
+output "nginx_asg_name" {
+  description = "Name of NGINX Auto Scaling Group"
+  value       = module.nginx_autoscaling.asg_name
+}
 
-# # Combined Endpoint
-# output "web_url" {
-#   description = "Public URL for the web application"
-#   value       = "https://${module.alb.dns_name}"
-# }
+# Combined Endpoint
+output "web_url" {
+  description = "Public URL for the web application"
+  value       = "https://${module.alb.alb_dns_name}"
+}
