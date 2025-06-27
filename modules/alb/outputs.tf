@@ -17,3 +17,8 @@ output "security_group_id" {
   description = "Security group ID of the frontend ALB"
   value       = aws_security_group.alb.id
 }
+
+output "alb_zone_id" {
+  description = "Canonical hosted zone ID of the ALB (for Route 53 alias records)"
+  value       = aws_lb.frontend.zone_id   
+}

@@ -139,3 +139,30 @@ resource "aws_iam_role_policy_attachment" "app_ssm" {
   role       = aws_iam_role.app.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+
+resource "aws_autoscaling_policy" "scale_out" {
+  name                   = "fastapi-scale-out-policy"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300  # 5-minute cooldown
+  autoscaling_group_name = aws_autoscaling_group.app.name
+  policy_type            = "SimpleScaling"  # Explicitly set policy type
+  enabled               = true
+}
+
+resource "aws_cloudwatch_metric_alarm" "high_cpu" {
+  alarm_name          = "fastapi-high-cpu"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 2
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 120  # 2 minutes
+  threshold           = 70   # Scale out at 70% CPU
+  statistic           = "Average"
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.app.name
+  }
+
+  alarm_actions = [aws_autoscaling_policy.scale_out.arn]
+}

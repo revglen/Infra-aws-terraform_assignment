@@ -103,3 +103,23 @@ module "nginx_autoscaling" {
   app_alb_dns_name          = module.app_autoscaling.alb_dns_name
   frontend_target_group_arn = module.alb.target_group_arn # CRITICAL CONNECTION  
 }
+
+module "waf" {
+  source = "./modules/waf"
+
+  alb_arn = module.alb.alb_arn
+  count   = 0 # Disabled for cost
+}
+
+module "apigateway" {
+  source = "./modules/apigateway"
+  count  = 0 # Disabled for cost
+}
+
+module "dns" {
+  source = "./modules/dns"
+
+  alb_dns_name = module.alb.alb_dns_name
+  alb_zone_id  = module.alb.alb_zone_id
+  count        = 0 # Disabled for cost
+}
