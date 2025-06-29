@@ -27,3 +27,11 @@ output "asg_name" {
   description = "Name of the application autoscaling group"
   value       = aws_autoscaling_group.app.name
 }
+
+output "alb_arn_suffix" {
+  value = aws_lb.app.arn_suffix
+}
+
+output "target_group_arn_suffix" {
+  value = aws_lb_target_group.app.arn_suffix
+}

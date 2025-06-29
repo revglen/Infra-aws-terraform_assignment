@@ -89,3 +89,30 @@ resource "aws_iam_role_policy_attachment" "nginx_ssm" {
   role       = aws_iam_role.nginx.name
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
+
+resource "aws_autoscaling_policy" "scale_out_nginx" {
+  name                   = "nginx-scale-out-policy"
+  scaling_adjustment     = 1
+  adjustment_type        = "ChangeInCapacity"
+  cooldown               = 300  # 5-minute cooldown
+  autoscaling_group_name = aws_autoscaling_group.nginx.name
+  policy_type            = "SimpleScaling"  # Explicitly set policy type
+  enabled               = true
+}
+
+resource "aws_cloudwatch_metric_alarm" "high_cpu_nginx" {
+  alarm_name          = "nginx-high-cpu"
+  comparison_operator = "GreaterThanOrEqualToThreshold"
+  evaluation_periods  = 1
+  metric_name         = "CPUUtilization"
+  namespace           = "AWS/EC2"
+  period              = 30  # 2 minutes
+  threshold           = 30   # Scale out at 70% CPU
+  statistic           = "Average"
+
+  dimensions = {
+    AutoScalingGroupName = aws_autoscaling_group.nginx.name
+  }
+
+  alarm_actions = [aws_autoscaling_policy.scale_out_nginx.arn]
+}

@@ -28,3 +28,16 @@ EOF
 # Start NGINX
 systemctl start nginx
 systemctl enable nginx
+
+mkdir -p /etc/systemd/system/nginx.service.d
+
+cat > /etc/systemd/system/nginx.service.d/override.conf <<EOF
+[Service]
+Restart=always
+RestartSec=5
+EOF
+
+# Reload systemd and restart nginx to apply override
+systemctl daemon-reexec
+systemctl daemon-reload
+systemctl restart nginx

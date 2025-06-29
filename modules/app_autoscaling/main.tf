@@ -140,29 +140,89 @@ resource "aws_iam_role_policy_attachment" "app_ssm" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
 }
 
-resource "aws_autoscaling_policy" "scale_out" {
-  name                   = "fastapi-scale-out-policy"
+# resource "aws_autoscaling_policy" "scale_out_app" {
+#   name                   = "fastapi-scale-out-policy"
+#   scaling_adjustment     = 1
+#   adjustment_type        = "ChangeInCapacity"
+#   cooldown               = 300  # 5-minute cooldown
+#   autoscaling_group_name = aws_autoscaling_group.app.name
+#   policy_type            = "SimpleScaling"  # Explicitly set policy type
+#   enabled               = true
+# }
+
+# resource "aws_cloudwatch_metric_alarm" "high_cpu_app" {
+#   alarm_name          = "fastapi-high-cpu"
+#   comparison_operator = "GreaterThanOrEqualToThreshold"
+#   evaluation_periods  = 1
+#   metric_name         = "CPUUtilization"
+#   namespace           = "AWS/EC2"
+#   period              = 30
+#   threshold           = 30
+#   statistic           = "Average"
+
+#   dimensions = {
+#     AutoScalingGroupName = aws_autoscaling_group.app.name
+#   }
+
+#   alarm_actions = [aws_autoscaling_policy.scale_out_app.arn]
+# }
+
+resource "aws_autoscaling_policy" "scale_out_app" {
+  name                   = "fastapi-request-scale-out-policy"
   scaling_adjustment     = 1
   adjustment_type        = "ChangeInCapacity"
-  cooldown               = 300  # 5-minute cooldown
+  cooldown               = 100  # 5-minute cooldown
   autoscaling_group_name = aws_autoscaling_group.app.name
-  policy_type            = "SimpleScaling"  # Explicitly set policy type
-  enabled               = true
+  policy_type            = "SimpleScaling"
 }
 
-resource "aws_cloudwatch_metric_alarm" "high_cpu" {
-  alarm_name          = "fastapi-high-cpu"
+resource "aws_cloudwatch_metric_alarm" "high_requests_app" {
+  alarm_name          = "fastapi-high-requests-per-target"
   comparison_operator = "GreaterThanOrEqualToThreshold"
-  evaluation_periods  = 2
-  metric_name         = "CPUUtilization"
-  namespace           = "AWS/EC2"
-  period              = 120  # 2 minutes
-  threshold           = 70   # Scale out at 70% CPU
+  evaluation_periods  = 1
+  threshold           = 200  # Scale when >200 requests per target
+  alarm_description   = "Triggers when ALB requests per target exceed threshold"
+
+  # CORRECT METRIC CONFIGURATION
+  metric_name         = "RequestCountPerTarget"
+  namespace           = "AWS/ApplicationELB"
+  period              = 60
   statistic           = "Average"
 
   dimensions = {
-    AutoScalingGroupName = aws_autoscaling_group.app.name
+    LoadBalancer = aws_lb.app.arn_suffix
+    TargetGroup  = aws_lb_target_group.app.arn_suffix
   }
 
-  alarm_actions = [aws_autoscaling_policy.scale_out.arn]
+  alarm_actions = [aws_autoscaling_policy.scale_out_app.arn]
+}
+
+# REQUIRED PREREQUISITES (add if missing):
+# resource "aws_lb" "app" {
+#   name               = "fastapi-alb"
+#   internal           = false
+#   load_balancer_type = "application"
+#   security_groups    = [aws_security_group.lb.id]
+#   subnets            = aws_subnet.public.*.id
+# }
+
+# resource "aws_lb_target_group" "app" {
+#   name     = "fastapi-tg"
+#   port     = 80
+#   protocol = "HTTP"
+#   vpc_id   = aws_vpc.main.id
+
+#   health_check {
+#     path                = "/health"
+#     interval            = 30
+#     timeout             = 5
+#     healthy_threshold   = 2
+#     unhealthy_threshold = 2
+#     matcher             = "200"
+#   }
+# }
+
+resource "aws_autoscaling_attachment" "app" {
+  autoscaling_group_name = aws_autoscaling_group.app.id
+  lb_target_group_arn    = aws_lb_target_group.app.arn
 }

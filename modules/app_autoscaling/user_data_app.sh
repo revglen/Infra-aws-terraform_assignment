@@ -35,7 +35,7 @@ services:
       - DATABASE_URL=postgresql://${db_username}:${db_password}@${db_endpoint}/${db_name}
     ports:
       - "80:8080"
-    restart: always
+    restart: unless-stopped
 EOF
 
 # Start application
