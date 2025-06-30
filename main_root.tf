@@ -37,10 +37,10 @@ module "networking" {
 module "alb" {
   source = "./modules/alb"
 
-  name       = "${var.project_name}-${var.environment}-alb"
-  vpc_id     = module.networking.vpc_id
-  subnet_ids = module.networking.public_subnets # need to change this
-  internal   = false
+  name            = "${var.project_name}-${var.environment}-alb"
+  vpc_id          = module.networking.vpc_id
+  subnet_ids      = module.networking.public_subnets # need to change this
+  internal        = false
   certificate_arn = aws_acm_certificate.self_signed.arn
   enable_https    = false
 }
@@ -99,7 +99,7 @@ module "nginx_autoscaling" {
 
   app_alb_dns_name          = module.app_autoscaling.alb_dns_name
   frontend_target_group_arn = module.alb.target_group_arn # CRITICAL CONNECTION
-  alb_arn_suffix = module.alb.alb_arn_suffix
+  alb_arn_suffix            = module.alb.alb_arn_suffix
 }
 
 module "waf" {
