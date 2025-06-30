@@ -50,3 +50,8 @@ variable "app_alb_dns_name" {
   description = "DNS name of the application ALB"
   type        = string
 }
+
+variable "alb_arn_suffix" {
+  description = "ALB Suffix Name"
+  type = string
+}

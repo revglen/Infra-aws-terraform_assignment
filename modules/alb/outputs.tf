@@ -22,3 +22,8 @@ output "alb_zone_id" {
   description = "Canonical hosted zone ID of the ALB (for Route 53 alias records)"
   value       = aws_lb.frontend.zone_id   
 }
+
+output "alb_arn_suffix" {
+  description = "ALB ARN Suffix Value"
+  value = aws_lb.frontend.arn_suffix
+}

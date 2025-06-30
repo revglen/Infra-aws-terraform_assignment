@@ -41,11 +41,8 @@ module "alb" {
   vpc_id     = module.networking.vpc_id
   subnet_ids = module.networking.public_subnets # need to change this
   internal   = false
-  # certificate_arn = var.acm_certificate_arn
-  # enable_https    = false
-
   certificate_arn = aws_acm_certificate.self_signed.arn
-  enable_https    = true
+  enable_https    = false
 }
 
 resource "aws_acm_certificate" "self_signed" {
@@ -101,7 +98,8 @@ module "nginx_autoscaling" {
   key_name           = module.app_autoscaling.ssh_key_pair
 
   app_alb_dns_name          = module.app_autoscaling.alb_dns_name
-  frontend_target_group_arn = module.alb.target_group_arn # CRITICAL CONNECTION  
+  frontend_target_group_arn = module.alb.target_group_arn # CRITICAL CONNECTION
+  alb_arn_suffix = module.alb.alb_arn_suffix
 }
 
 module "waf" {
